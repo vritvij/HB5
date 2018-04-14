@@ -24,7 +24,7 @@ router.post('/', function(req, res, next) {
 
 /* PUT /locations/:id */
 router.put('/:id', function(req, res, next) {
-  Locations.findByIdAndUpdate(req.params.id, req.body, function (err, post) {
+  Locations.findOneAndUpdate({'user_id':req.params.id}, req.body, function (err, post) {
     if (err) return next(err);
     res.json(post);
   });
