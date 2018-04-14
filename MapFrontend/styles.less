@@ -1,0 +1,126 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: #1b2734;
+}
+
+#map {
+  height: 100%;
+}
+
+#markerLayer img {
+  animation: pulse .5s infinite alternate;
+  -webkit-animation: pulse .5s infinite alternate;
+  transform-origin: center;
+  -webkit-transform-origin: center;
+}
+
+#overlay {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  z-index: 1000;
+  display: flex;
+  background-color: #031b38;
+  transition: opacity 0.5s ease-in;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:  url("./mapOverlay.png");
+    opacity: 0.5;
+    filter: blur(2px);
+    background-size: cover;
+  }
+
+  &.hide {
+    pointer-events: none;
+    opacity: 0;
+  }
+}
+
+@loader-size: 50px;
+@loader-border-size: 3px;
+
+#loader {
+  width: @loader-size;
+  height: @loader-size;
+  border: @loader-border-size solid #be304c;
+  border-radius: 50%;
+  position: relative;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+
+  &::before,
+  &::after {
+    position: absolute;
+    content: '';
+    width: 100%;
+    height: 100%;
+    top: -@loader-border-size;
+    left: -@loader-border-size;
+    animation: pulsate 1s ease-out;
+    animation-iteration-count: infinite;
+    border: @loader-border-size solid #be304c;
+    border-radius: 50%;
+    transform-origin: center;
+
+  }
+
+  &::after {
+    animation-delay: 0.3s;
+  }
+}
+
+@keyframes pulsate {
+  0% {
+    transform: scale(1, 1);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1.5, 1.5);
+    opacity: 0;
+  }
+}
+
+#loading-text {
+  color: white;
+  font-family: Tahoma, Geneva, sans-serif;
+  z-index: 10;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, 75px);
+  font-size: 1.5rem;
+  text-align: center;
+}
+
+#heatmap-btn {
+  z-index: 20;
+  position: absolute;
+  top: 0;
+  right: 0;
+  margin: 1rem;
+  padding: 1rem 1.5rem;
+  border-radius: 2px;
+  border: 2px solid #be304c;
+  background-color: #202a31;
+  cursor: pointer;
+  color: #be304c;
+  font-size: 1rem;
+  font-weight: 100;
+  outline: none;
+  transition: background-color 0.25s;
+}
