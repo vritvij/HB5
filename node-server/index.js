@@ -2,6 +2,7 @@
 var express = require('express');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
+var cors = require('cors');
 
 // MongoDB
 mongoose.connect('mongodb://localhost/location');
@@ -10,6 +11,7 @@ mongoose.connect('mongodb://localhost/location');
 var app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
+app.use(cors());
 
 // Routes
 app.use('/locations', require('./routes/locations.js'));
