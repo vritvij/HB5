@@ -4,7 +4,7 @@ android {
     compileSdkVersion 27
     defaultConfig {
         applicationId "com.example.ninad.hb5_"
-        minSdkVersion 24
+        minSdkVersion 23
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
@@ -25,5 +25,7 @@ dependencies {
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'com.android.support.test:runner:1.0.1'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
-    compile 'com.uriio:beacons-android:1.5.2'
+    implementation 'com.uriio:beacons-android:1.5.2'
+    implementation 'com.google.android.gms:play-services-location:15.0.0'
+    implementation 'org.altbeacon:android-beacon-library:2+'
 }
