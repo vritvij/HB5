@@ -54,7 +54,6 @@ public class MainActivity extends AppCompatActivity implements BeaconConsumer, R
         sendToServer("+123.1111111" , "-111.789456123" , "1234");
     }
 
-
     @Override
     public void onResume() {
         super.onResume();
