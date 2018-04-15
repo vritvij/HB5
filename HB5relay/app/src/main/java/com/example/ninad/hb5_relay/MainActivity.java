@@ -52,8 +52,26 @@ import java.util.UUID;
 public class MainActivity extends AppCompatActivity {
 
     BluetoothLeScanner mBluetoothLeScanner;
-    Handler mHandler = new Handler();
+
     final String TAG = "HB5Relay-MainActivity";
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        //Get the BluetoothScanner to scan for BLE advertisements
+        mBluetoothLeScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
+        List<ScanFilter> filters = new ArrayList<>();
+        ScanFilter filter = new ScanFilter.Builder()
+                .setServiceUuid( new ParcelUuid(UUID.fromString( getString(R.string.ble_uuid ) ) ) )
+                .build();
+        filters.add( filter );
+
+        ScanSettings settings = new ScanSettings.Builder()
+                .setScanMode( ScanSettings.SCAN_MODE_LOW_LATENCY )
+                .build();
+        mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
+    }
+
     private ScanCallback mScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
@@ -88,23 +106,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        //Get the BluetoothScanner to scan for BLE advertisements
-        mBluetoothLeScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
-        List<ScanFilter> filters = new ArrayList<>();
-        ScanFilter filter = new ScanFilter.Builder()
-                .setServiceUuid( new ParcelUuid(UUID.fromString( getString(R.string.ble_uuid ) ) ) )
-                .build();
-        filters.add( filter );
 
-        ScanSettings settings = new ScanSettings.Builder()
-                .setScanMode( ScanSettings.SCAN_MODE_LOW_LATENCY )
-                .build();
-        mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
-    }
     /**
      * Sends data to the server
      * @param lat Latitude of the user

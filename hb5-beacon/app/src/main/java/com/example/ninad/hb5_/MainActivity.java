@@ -15,6 +15,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import java.util.Locale;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
@@ -66,7 +68,9 @@ public class MainActivity extends AppCompatActivity {
                     // check if GPS enabled
                     if (gps.canGetLocation()) {
                         //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
-
+                        latitude = String.format(Locale.ENGLISH,"%.6f", 33.900325);
+                        longitude = String.format(Locale.ENGLISH,"%.6f", -118.388639);
+                        data = latitude+" "+longitude;
                         advData = new AdvertiseData.Builder()
                                 .setIncludeDeviceName(false)
                                 .addServiceUuid(pUuid)
@@ -75,32 +79,6 @@ public class MainActivity extends AppCompatActivity {
 
                         advertiser.startAdvertising(settings, advData, advertisingCallback);
                         sosButton.setText("Cancel");
-
-                        AsyncTask.execute(new Runnable() {
-                            @Override
-                            public void run() {
-                                while(true) {
-                                    if (latitude != String.format("%.6f", gps.getLatitude()) && longitude != String.format("%.6f", gps.getLongitude())) {
-                                        latitude = String.format("%.6f", gps.getLatitude());
-                                        longitude = String.format("%.6f", gps.getLongitude());
-                                        data = latitude + " " + longitude;
-
-                                        advData = new AdvertiseData.Builder()
-                                                .setIncludeDeviceName(false)
-                                                .addServiceUuid(pUuid)
-                                                .addServiceData(pUuid, data.getBytes())
-                                                .build();
-
-                                        advertiser.startAdvertisingSet(null,advData,null,null,null,null);
-                                    }
-                                    try {
-                                        Thread.sleep(2000);
-                                    } catch (InterruptedException e) {
-                                        e.printStackTrace();
-                                    }
-                                }
-                            }
-                        });
 
 
                     } else {
