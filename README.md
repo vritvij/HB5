@@ -1,29 +1,35 @@
+# About the Team
+Team: CryogenX
+Contributor: Sharvil Kadam, Vritvij Kadam, Ninad Chaudhari, Niranjan Patil, Jianfa Lin
+
 # Homing Beacon Map
 Homing Beacon Map provide a solution for helping to locate people who needs to be rescued more efficiently and accurately.
 
 # Overview
-Homing Beacon Map actually is a composite of three parts: **Beacon**, **Relay**, and **Locating Map**.
+Homing Beacon Map actually is a composite of four parts: **Beacon**, **Relay**, and **Locating Map**.
 
-![Overview Image](https://github.com/vritvij/HB5/HBM.png)
+![Overview Image](https://github.com/vritvij/HB5/blob/master/HBM.png)
 
 * **Beacon** is carried by end user. When the user believe he's in danger he can turn on "SOS" button on the beacon, then beacon will send out signal including GPS and unique ID.
 
 * **Relay** is owned by first responder or other rescue organizations. It can be attached to drone or other devices that sent to assigned area, and detect the signal from beacons. Once signal is received, it can send the information to base server.
 
+* **Base Server** is a connection between relay and map. The relay transmits the collected data from beacons to server, and our mapping algorithm generates an open source map.
+
 * **Locating Map** is a front-end application provided for first responder or other rescue organizations. It acquire location data from base server and draw a locating map helping rescuer to find victim and dispatch rescue power more efficiently.
 
-# Coding
+# Codes
 ## Beacon
-hb5-beacon is beacon project. In this hackathon we implemented an Android App using Eddystone open beacon format to work as a beacon.
+_hb5-beacon_ is beacon project. In this hackathon we implemented an Android App using Eddystone open beacon format to work as a beacon.
 
 ## Relay
-HB5relay is relay project. We implemented an Android App also using Eddystone open beacon format to work as a receiver and transmitter.
+_HB5relay_ is relay project. We implemented an Android App also using Eddystone open beacon format to work as a receiver and transmitter.
 
 ## Base Server
-node-server is server project. We implemented a node server in AWS to work as a server getting data from Relay and sending data to Map application.
+_node-server_ is server project. We implemented a node server in AWS to work as a server getting data from Relay and sending data to Map application.
 
 ## Map
-MapFronted is Locating Map project. We implemented a real-time map application using Google Maps and Visualization API along with barebones HTML, Less/Css and Javascript.
+_MapFronted_ is Locating Map project. We implemented a real-time map application using Google Maps and Visualization API along with barebones HTML, Less/Css and Javascript.
 
 # Running Instruction
 Consists of 4 components
