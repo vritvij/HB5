@@ -177,7 +177,7 @@ $(document).ready(function () {
                         title: ping["user_id"],
                         position: ping["latLng"],
                         map: isHeatmapEnabled ? null : map,
-                        icon: ping["other_data"]["isAlive"] ? markerActive : markerInactive
+                        icon: markerActive
                     }));
                 });
             },
