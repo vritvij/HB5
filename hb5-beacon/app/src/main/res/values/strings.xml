@@ -1,9 +1,4 @@
 <resources>
     <string name="app_name">Beacon</string>
     <string name="ble_uuid">00001802-0000-1000-8000-00805f9b34fb</string>
-<<<<<<< HEAD
-=======
-    <string name="sos_text">SOS</string>
-    <string name="cancel_text">CANCEL</string>
->>>>>>> ce9d42980199c8ea3b03d46bace9d8edd792a400
 </resources>

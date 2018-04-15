@@ -61,35 +61,53 @@ public class MainActivity extends AppCompatActivity {
         //Get the BluetoothScanner to scan for BLE advertisements
         mBluetoothLeScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
         List<ScanFilter> filters = new ArrayList<>();
+        //Filter only the Ads that are from our beacon's UUIDs
         ScanFilter filter = new ScanFilter.Builder()
                 .setServiceUuid( new ParcelUuid(UUID.fromString( getString(R.string.ble_uuid ) ) ) )
                 .build();
         filters.add( filter );
 
+        // Many Scan modes. We are selecting the one with low Latency.
+        // Also setting the report delay to 500ms.
         ScanSettings settings = new ScanSettings.Builder()
+                .setReportDelay(500)
                 .setScanMode( ScanSettings.SCAN_MODE_LOW_LATENCY )
                 .build();
+        // Starting listening for ads
         mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
     }
 
+    /**
+     *
+     */
     private ScanCallback mScanCallback = new ScanCallback() {
+        /**
+         * This is a callback function that is called when we discover any beacon
+         * @param callbackType
+         * @param result result object with beacon info.
+         */
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
             super.onScanResult(callbackType, result);
             if( result == null || result.getDevice() == null )
-                return;
+                return; // Do nothing if the ads are mak formed.
             try {
                 StringBuilder builder = new StringBuilder();
-                ScanRecord sr = result.getScanRecord();
-                List<ParcelUuid> lt = sr.getServiceUuids();
-                ParcelUuid pu = lt.get(0);
-                byte[] mp = sr.getServiceData(pu);
-                builder.append(new String(mp, Charset.forName("UTF-8")));
-                Log.i("DataReceived!", builder.toString()+" "+ result.getDevice().getAddress());
+                ScanRecord beaconRecord = result.getScanRecord();
+
+                // We get the payload from record.
+                List<ParcelUuid> Puuids = beaconRecord.getServiceUuids();
+                ParcelUuid pUuid = Puuids.get(0);
+                byte[] latLngBytes = beaconRecord.getServiceData(pUuid);
+                builder.append(new String(latLngBytes, Charset.forName("UTF-8")));
                 String[] LatLng = builder.toString().split(" ");
+                // Debug code.
+                Log.d("DataReceived!", builder.toString()+" "+ result.getDevice().getAddress());
+                //Send it to server
                 sendToServer(LatLng[0],LatLng[1],result.getDevice().getAddress());
             }
             catch(Exception e){
+
                 Log.e(TAG, e.getMessage());
             }
         }
@@ -97,6 +115,10 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onBatchScanResults(List<ScanResult> results) {
             super.onBatchScanResults(results);
+
+            for (ScanResult result: results) {
+                onScanResult(0, result);
+            }
         }
 
         @Override
@@ -118,8 +140,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
                 try {
+                    // URL of our api server
                     URL httpEndPoint = new URL("http://18.217.115.154:3000/locations/" + user_id);
-                    Log.d(TAG, "Data : " + lat );
+                    // Open the connection
                     HttpURLConnection myConnection = (HttpURLConnection) httpEndPoint.openConnection();
                     myConnection.setRequestMethod("PUT");
                     myConnection.setRequestProperty("User-Agent", "relay-01");
@@ -137,10 +160,10 @@ public class MainActivity extends AppCompatActivity {
                         // Request was a success.
                         // Read the response and store in a String.
                         InputStream responseBody = myConnection.getInputStream();
-                        BufferedReader r = new BufferedReader(new InputStreamReader(responseBody));
+                        BufferedReader bReader = new BufferedReader(new InputStreamReader(responseBody));
                         StringBuilder total = new StringBuilder();
                         String line;
-                        while ((line = r.readLine()) != null) {
+                        while ((line = bReader.readLine()) != null) {
                             total.append(line).append('\n');
                         }
                         //Logging the same for debugging.
@@ -148,13 +171,12 @@ public class MainActivity extends AppCompatActivity {
                         //End the connection.
                         myConnection.disconnect();
                     } else {
-                        //Toast.makeText(getApplicationContext(),"Failed to send the data to server" , Toast.LENGTH_LONG).show();
+                        // Log if there is a server error
                         Log.d(TAG,"Server returned something wrong.");
                         Log.d(TAG,myConnection.getResponseMessage());
                     }
                 } catch (Exception e) {
-                    //Handle the exceptions that may arrise in Request construction.
-                    //Toast.makeText(getApplicationContext(),"Request Construction error" , Toast.LENGTH_LONG).show();
+                    //Handle the exceptions that may arrise in Request construction
                     e.printStackTrace();
                 }
             }
