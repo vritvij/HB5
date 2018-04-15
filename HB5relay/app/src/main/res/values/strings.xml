@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">HB5-relay</string>
+    <string name="app_name">Relay</string>
     <string name="ble_uuid">00001802-0000-1000-8000-00805f9b34fb</string>
 </resources>
