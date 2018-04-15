@@ -1,11 +1,10 @@
 package com.example.ninad.hb5_;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.le.AdvertiseCallback;
 import android.bluetooth.le.AdvertiseData;
-import android.bluetooth.le.AdvertiseSettings;
 import android.bluetooth.le.AdvertisingSet;
 import android.bluetooth.le.AdvertisingSetCallback;
+import android.bluetooth.le.AdvertisingSetParameters;
 import android.bluetooth.le.BluetoothLeAdvertiser;
 import android.os.AsyncTask;
 import android.os.ParcelUuid;
@@ -15,19 +14,24 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
+
+import java.util.Locale;
 import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     Button sosButton;
     GPSTracker gps;
     BluetoothLeAdvertiser advertiser;
-    AdvertiseCallback advertisingCallback;
-    AdvertiseSettings settings;
+    AdvertisingSetCallback advertisingSetCallback;
     AdvertiseData advData;
     ParcelUuid pUuid;
     String latitude;
     String longitude;
     String data;
+    AdvertisingSet currentAdvertisingSet;
+    String LOG_TAG = "App";
+    Runnable DataUpdateThread;
+    volatile boolean ShouldUpdate = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,59 +43,84 @@ public class MainActivity extends AppCompatActivity {
 
         sosButton = findViewById(R.id.sosButton);
         advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
-        settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode( AdvertiseSettings.ADVERTISE_MODE_LOW_LATENCY )
-                .setTxPowerLevel( AdvertiseSettings.ADVERTISE_TX_POWER_HIGH )
-                .setConnectable( false )
-                .build();
         pUuid = new ParcelUuid( UUID.fromString( getString(R.string.ble_uuid)));
-        advertisingCallback = new AdvertiseCallback() {
+        advertisingSetCallback = new AdvertisingSetCallback() {
             @Override
-            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-                super.onStartSuccess(settingsInEffect);
+            public void onAdvertisingSetStarted(AdvertisingSet advertisingSet, int txPower, int status) {
+                Log.i(LOG_TAG, "onAdvertisingSetStarted(): txPower:" + txPower + " , status: "
+                        + status);
+                currentAdvertisingSet = advertisingSet;
             }
 
             @Override
-            public void onStartFailure(int errorCode) {
-                Log.e( "BLE", "Advertising onStartFailure: " + errorCode );
-                super.onStartFailure(errorCode);
+            public void onAdvertisingDataSet(AdvertisingSet advertisingSet, int status) {
+                Log.i(LOG_TAG, "onAdvertisingDataSet() :status:" + status);
+            }
+
+            @Override
+            public void onScanResponseDataSet(AdvertisingSet advertisingSet, int status) {
+                Log.i(LOG_TAG, "onScanResponseDataSet(): status:" + status);
+            }
+
+            @Override
+            public void onAdvertisingSetStopped(AdvertisingSet advertisingSet) {
+                Log.i(LOG_TAG, "onAdvertisingSetStopped():");
             }
         };
+
+        advData = new AdvertiseData.Builder()
+                .setIncludeDeviceName(false)
+                .addServiceUuid(pUuid)
+                .build();
 
         sosButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(sosButton.getText().equals("SOS")) {
+                ShouldUpdate = sosButton.getText().equals("SOS");
+                if(ShouldUpdate) {
                     gps = new GPSTracker(MainActivity.this);
                     // check if GPS enabled
                     if (gps.canGetLocation()) {
-                        //Toast.makeText(getApplicationContext(), "Your Location is - \nLat: " + latitude + "\nLong: " + longitude, Toast.LENGTH_LONG).show();
 
+                        latitude = String.format(Locale.ENGLISH, "%.6f", gps.getLatitude());
+                        longitude = String.format(Locale.ENGLISH, "%.6f", gps.getLongitude());
+                        data = latitude + " " + longitude;
                         advData = new AdvertiseData.Builder()
                                 .setIncludeDeviceName(false)
                                 .addServiceUuid(pUuid)
                                 .addServiceData(pUuid, data.getBytes())
                                 .build();
 
-                        advertiser.startAdvertising(settings, advData, advertisingCallback);
-                        sosButton.setText("Cancel");
+                        AdvertisingSetParameters params  = new AdvertisingSetParameters.Builder()
+                                .setLegacyMode(true)
+                                .setConnectable(false)
+                                .setInterval(AdvertisingSetParameters.INTERVAL_LOW)
+                                .setTxPowerLevel(AdvertisingSetParameters.TX_POWER_HIGH)
+                                .build();
 
-                        AsyncTask.execute(new Runnable() {
+                        advertiser.startAdvertisingSet(params,advData,null,null,null,advertisingSetCallback);
+                        sosButton.setText(R.string.cancel_text);
+
+                        DataUpdateThread = new Runnable() {
                             @Override
                             public void run() {
-                                while(true) {
-                                    if (latitude != String.format("%.6f", gps.getLatitude()) && longitude != String.format("%.6f", gps.getLongitude())) {
-                                        latitude = String.format("%.6f", gps.getLatitude());
-                                        longitude = String.format("%.6f", gps.getLongitude());
-                                        data = latitude + " " + longitude;
+                                while(ShouldUpdate) {
+                                    if (currentAdvertisingSet != null) {
+                                        String newLatitude = String.format(Locale.ENGLISH, "%.6f", gps.getLatitude());
+                                        String newLongitude = String.format(Locale.ENGLISH, "%.6f", gps.getLongitude());
+                                        if (!latitude.equals(newLatitude) && !longitude.equals(newLongitude)) {
+                                            latitude = newLatitude;
+                                            longitude = newLongitude;
+                                            data = latitude + " " + longitude;
 
-                                        advData = new AdvertiseData.Builder()
-                                                .setIncludeDeviceName(false)
-                                                .addServiceUuid(pUuid)
-                                                .addServiceData(pUuid, data.getBytes())
-                                                .build();
+                                            advData = new AdvertiseData.Builder()
+                                                    .setIncludeDeviceName(false)
+                                                    .addServiceUuid(pUuid)
+                                                    .addServiceData(pUuid, data.getBytes())
+                                                    .build();
 
-                                        advertiser.startAdvertisingSet(null,advData,null,null,null,null);
+                                            currentAdvertisingSet.setAdvertisingData(advData);
+                                        }
                                     }
                                     try {
                                         Thread.sleep(2000);
@@ -100,18 +129,19 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
                             }
-                        });
+                        };
 
-
+                        AsyncTask.execute(DataUpdateThread);
                     } else {
                         gps.showSettingsAlert();
                     }
                 }
                 else{
                     gps.stopUsingGPS();
-                    advertiser.stopAdvertising(advertisingCallback);
+                    advertiser.stopAdvertisingSet(advertisingSetCallback);
+                    currentAdvertisingSet = null;
                     Toast.makeText(getApplicationContext(), "GPS is Stopped", Toast.LENGTH_LONG).show();
-                    sosButton.setText("SOS");
+                    sosButton.setText(R.string.sos_text);
                 }
             }
         });
