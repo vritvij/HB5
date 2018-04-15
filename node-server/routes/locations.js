@@ -15,6 +15,7 @@ router.get('/', function(req, res, next) {
 
 /* POST /locations */
 router.post('/', function(req, res, next) {
+	console.log(req.body);
   Locations.create(req.body, function (err, post) {
     if (err) return next(err);
     res.json(post);
@@ -24,7 +25,7 @@ router.post('/', function(req, res, next) {
 
 /* PUT /locations/:id */
 router.put('/:id', function(req, res, next) {
-  Locations.findOneAndUpdate({'user_id':req.params.id}, req.body, function (err, post) {
+  Locations.findOneAndUpdate({'user_id':req.params.id}, req.body, {upsert: true, new: true, setDefaultsOnInsert: true}, function (err, post) {
     if (err) return next(err);
     res.json(post);
   });
@@ -33,6 +34,14 @@ router.put('/:id', function(req, res, next) {
 /* DELETE /locations/:id */
 router.delete('/:id', function(req, res, next) {
   Locations.findByIdAndRemove(req.params.id, req.body, function (err, post) {
+    if (err) return next(err);
+    res.json(post);
+  });
+});
+
+//Delete ALL
+router.delete('/', function(req, res, next) {
+  Locations.remove({}, function (err, post) {
     if (err) return next(err);
     res.json(post);
   });
